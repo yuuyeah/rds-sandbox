@@ -61,22 +61,19 @@ CDKスタックは1つだけです。そのアーキテクチャを以下に示�
 
 ### 2. リソースをデプロイする
 
-- Run `npm ci` command in the top of this directory.
-- Run `npx cdk deploy` to deploy these resouces.
-- When resouces are successfully deployed, outputs such as `DbDefinerStack.DBDBInitCommand` will be shown in the terminal. These values will be used to define tables.
-- You can edit DDL in `./lambda/db-definer/schema` and DML in `./lambda/db-definer/seed` before deploy.
-
 - このディレクトリの一番上の階層で `npm ci` コマンドを実行します。
 - `npx cdk deploy`を実行して、これらのリソースをデプロイします。
 - リソースが正常にデプロイされると、ターミナルに `DbDefinerStack.DBDBInitCommand` が出力されます。このコマンドを利用すると AWS Lambda を利用してデータベースを初期化することができます。
-- デプロイ前に `./lambda/db-definer/schema` にあるDDLと `./lambda/db-definer/seed` にあるDMLを編集することができます。
 
-```sh
-Outputs:
-DbDefinerStack.DBDBLambdaNameXXXXXXX = DbDefinerStack-DBDbDefinerXXXXXX
-Stack ARN:
-arn:aws:cloudformation:xyz-region-x:XXXXXXXXXXX:stack/DbDefinerStack/XXXXXXXXXXXXXXXXXX
-```
+    ```sh
+    Outputs:
+    DbDefinerStack.DBDBInitCommandxxxxxxxx = aws lambda invoke --function-name DbDefinerStack-DBDbDefiner53C1CCFA-fst6FPr4zp3X --payload '{"command":"init"}' --cli-binary-format raw-in-base64-out res.txt
+    DbDefinerStack.DBDBLoginCommand92CF7324 = PGPASSWORD=<DB Password from Secret Manager>       psql -h dbdefinerstack-dbauroracluster6c1914eb-xxxxxxxxx.cluster-xxxxxxxx.ap-northeast-1.rds.amazonaws.com       -U postgres prototype
+    Stack ARN:
+    arn:aws:cloudformation:ap-northeast-1:496148929170:stack/DbDefinerStack/cf6f0c40-b935-11ed-b91a-xxxxxxx
+    ```
+
+- デプロイ前に `./lambda/db-definer/schema` にあるDDLと `./lambda/db-definer/seed` にあるDMLを編集することができます。
 
 ### 3. テーブルを定義する
 
@@ -105,7 +102,7 @@ aws lambda invoke --function-name [DbDefinerStack.DBDBLambdaName] --payload '{"c
 
 Systems Manager Session Manager を使って EC2 インスタンスにログインし、以下のコマンドで RDS のデータベースへログインすることができます。
 
-パスワードやホスト名は Secrets Manager から確認することができます。
+パスワードやホスト名は Secrets Manager に作成されているシークレットから確認することができます。
 
 ```text
 PGPASSWORD=<password> \
