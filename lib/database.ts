@@ -79,9 +79,9 @@ export class Database extends Construct {
     });
 
     // 踏み台サーバーからDBへのアクセスコマンド例
-    new CfnOutput(this, "DBInitCommand", {
+    new CfnOutput(this, "DBLoginCommand", {
       value: `PGPASSWORD=<DB Password from Secret Manager> \
-      psql -h ${dbCluster.clusterEndpoint} \
+      psql -h ${dbCluster.clusterEndpoint.hostname} \
       -U postgres prototype`,
     });
   }

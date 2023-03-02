@@ -1,10 +1,14 @@
-# RDBMS Sandbox w/ 踏み台サーバ & スキーマ管理Lambda
+# Amazon Aurora for Postgresql Sandbox w/ 踏み台サーバ & スキーマ管理Lambda
 
 ## Overview
 
-本サンプルでは、Amazon Aurora, 踏み台サーバー（EC2 インスタンス）, AWS Lambda（べき等·宣言的に SQL を管理するsqldefを利用したスキーマ管理）をデプロイします。
+本サンプルでは、主に以下3つのリソースがデプロイされます。
 
-Lambda 関数を実行することによって、簡単にデータベースのテーブルに初期データをシードすることができます。
+- Amazon Aurora for Postgresql
+- 踏み台サーバー（EC2 インスタンス）
+- AWS Lambda（べき等·宣言的に SQL を管理するsqldefを利用したスキーマ管理）
+
+Lambda 関数を実行することによって、簡単にデータベースのテーブル作成·初期データをシードを行うことができます。
 
 任意のSQLを踏み台サーバーから実行することもできます。一時的なデータベースを作って動作検証したい、そんなユースケースにぴったりです。
 
