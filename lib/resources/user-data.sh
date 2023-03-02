@@ -1,0 +1,1 @@
+amazon-linux-extras install postgresql13 -y

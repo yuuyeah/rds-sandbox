@@ -1,30 +1,31 @@
-# Serverless Database Schema Management for RDBMS
-[![Build](https://github.com/aws-samples/aws-lambda-with-rdb/actions/workflows/build.yml/badge.svg)](https://github.com/aws-samples/aws-lambda-with-rdb/actions/workflows/build.yml)
+# RDBMS Sandbox w/ 踏み台サーバ & スキーマ管理Lambda
 
 ## Overview
-This sample shows you how to manage schema of RDBMS such as Amazon RDS, leveraging AWS Lambda and [sqldef](https://github.com/k0kubun/sqldef), an idempotent and declarative SQL schema management tool.
-You can also seed initial data to your database tables, allowing you to fit this sample in various use cases.
 
-Just for example this sample deploys an Amazon RDS Aurora MySQL/Postgres cluster, but you can use the mechanism with any MySQL/Postgres clusters as long as Lambda can connect to them.
+本サンプルでは、Amazon Aurora, 踏み台サーバー（EC2 インスタンス）, AWS Lambda（べき等·宣言的に SQL を管理するsqldefを利用したスキーマ管理）をデプロイします。
 
-## Architecture
+Lambda 関数を実行することによって、簡単にデータベースのテーブルに初期データをシードすることができます。
 
-There is only one CDK stack. The architecture is shown below.
+任意のSQLを踏み台サーバーから実行することもできます。一時的なデータベースを作って動作検証したい、そんなユースケースにぴったりです。
+
+[Serverless Database Schema Management for RDBMS](https://github.com/aws-samples/aws-lambda-with-rdb)を基に作成しています。
+
+## アーキテクチャ
+
+CDKスタックは1つだけです。そのアーキテクチャを以下に示します。
 
 ![Architecture](./imgs/architecture.png)
 
-## Directory Structures
+## ディレクトリ構成
 
 ```sh
 .
 ├── bin
-│   ├── db-definer.ts              # Define CDK Stack
-│   └── db-settings.ts             # Define type of database family (PostgreSQL, MySQL) settings
+│   └── db-definer.ts              # Define CDK Stack
 ├── lambda
 │   └── db-definer
 │       ├── schema                 # Table Definition. SQL file in this folder will be executed
 │       └── seed
-│           ├── mysql              # Seed SQL file for MySQL
 │           └── postgresql         # Seed SQL file for PostgreSQL
 └── lib
     ├── database.ts                # Amazon Aurora and AWS Lambda are defined here
@@ -32,15 +33,15 @@ There is only one CDK stack. The architecture is shown below.
 
 ```
 
-## Main Libraries
+## 主な技術スタック
 
 - aws-cdk
 - typescript
 - sqldef
-  - For more information, please see below.
+  - 詳細は以下のリンクをご参照ください。
   - [k0kubun/sqldef: Idempotent schema management for MySQL, PostgreSQL, and more](https://github.com/k0kubun/sqldef)
 
-## Prerequisites
+## 前提条件
 
 - npm
 - aws cli v2
@@ -50,16 +51,21 @@ There is only one CDK stack. The architecture is shown below.
 
 ## Getting Started
 
-### 1. Clone the repository
+### 1. リポジトリをクローンする
 
-- Run `git clone` command to download the source code.
+- `git clone` コマンドを用いてソースコードをクローンします
 
-### 2. Deploy resources
+### 2. リソースをデプロイする
 
 - Run `npm ci` command in the top of this directory.
 - Run `npx cdk deploy` to deploy these resouces.
-- When resouces are successfully deployed, outputs such as `DbDefinerStack.DBDBLambdaName` will be shown in the terminal. These values will be used to define tables.
+- When resouces are successfully deployed, outputs such as `DbDefinerStack.DBDBInitCommand` will be shown in the terminal. These values will be used to define tables.
 - You can edit DDL in `./lambda/db-definer/schema` and DML in `./lambda/db-definer/seed` before deploy.
+
+- このディレクトリの一番上の階層で `npm ci` コマンドを実行します。
+- `npx cdk deploy`を実行して、これらのリソースをデプロイします。
+- リソースが正常にデプロイされると、ターミナルに `DbDefinerStack.DBDBInitCommand` が出力されます。このコマンドを利用すると AWS Lambda を利用してデータベースを初期化することができます。
+- デプロイ前に `./lambda/db-definer/schema` にあるDDLと `./lambda/db-definer/seed` にあるDMLを編集することができます。
 
 ```sh
 Outputs:
@@ -68,27 +74,39 @@ Stack ARN:
 arn:aws:cloudformation:xyz-region-x:XXXXXXXXXXX:stack/DbDefinerStack/XXXXXXXXXXXXXXXXXX
 ```
 
-### 3. Define Table
+### 3. テーブルを定義する
 
-`DbDefinerStack.DBDBLambdaName` accept these command from event.
+この CDK によってデプロイされる Lambda 関数 は以下のコマンドを実行できます。
 
 1. `init`  
-    Drop and create database. You can use this command under developing.
-    SQL file in `./lambda/db-definer/schema` will be reflected.
+    データベースをドロップして作成します。このコマンドは開発環境下で使用することができます。
+    `./lambda/db-definer/schema` に配置してあるファイルが反映されます。
 2. `preview`  
-    Preview change the definition of table from SQL file in `./lambda/db-definer/schema` by using sqldef.
+    sqldefを使用して、`./lambda/db-definer/schema`にあるSQLファイルによるテーブルの定義の変更をプレビューします。
 3. `sync`  
-    Synchronize table in database to SQL file in `./lambda/db-definer/schema` by using sqldef.  
-    You can preview SQL that will be excuted by sqldef.
+    sqldefを使ってデータベースのテーブルを`./lambda/db-definer/schema`にあるSQLファイルに同期させます。
+    sqldefで実行されるSQLは、`preview`コマンドで事前に確認することができます。
 4. `seed`  
-    Run SQL file in `./lambda/db-definer/seed/mysql` or `./lambda/db-definer/seed/postgresql`.  
-    You can use this command for inserting seed data to database.
+    `./lambda/db-definer/seed/postgresql`に配置されているSQLファイルを実行します。
+    このコマンドは、データベースへのシードデータの挿入に使用することができます。
 
-For example, when you want to initialize DB, run below command in the terminal.  
-You can excute this lambda from AWS Management Console.
+例えば、DBを初期化する場合、ターミナルで以下のコマンドを実行します。
+この Lambda 関数は AWS Management Console からも実行することができます。
 
 ```sh
 aws lambda invoke --function-name [DbDefinerStack.DBDBLambdaName] --payload '{"command":"init"}' --cli-binary-format raw-in-base64-out res.txt
+```
+
+### 踏み台サーバーへのアクセス
+
+Systems Manager Session Manager を使って EC2 インスタンスにログインし、以下のコマンドで RDS のデータベースへログインすることができます。
+
+パスワードやホスト名は Secrets Manager から確認することができます。
+
+```text
+PGPASSWORD=<password> \
+psql -h <host name> \
+-U postgres prototype
 ```
 
 ## Security
