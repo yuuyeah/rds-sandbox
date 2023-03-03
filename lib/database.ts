@@ -2,6 +2,7 @@ import { Construct } from "constructs";
 import { Duration, CfnOutput } from "aws-cdk-lib";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as rds from "aws-cdk-lib/aws-rds";
+import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { readFileSync } from "fs";
 
@@ -63,11 +64,17 @@ export class Database extends Construct {
       cpuType: ec2.AmazonLinuxCpuType.X86_64,
     });
 
+    const ec2Role = new iam.Role(this, "BastionServerRole", {
+      assumedBy: new iam.ServicePrincipal("ec2.amazonaws.com"),
+      managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMManagedInstanceCore")],
+    });
+
     const bastion = new ec2.Instance(this, "BastionServer", {
       vpc: props.vpc,
       vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
       machineImage: ami,
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO),
+      role: ec2Role,
     });
 
     bastion.addUserData(userDataScript);
