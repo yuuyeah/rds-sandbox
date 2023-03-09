@@ -8,6 +8,7 @@ import { readFileSync } from "fs";
 
 export interface DatabaseProps {
   vpc: ec2.IVpc;
+  auroraInstanceNumber: number;
 }
 
 // データベース
@@ -24,7 +25,7 @@ export class Database extends Construct {
     const dbCluster = new rds.DatabaseCluster(this, "AuroraCluster", {
       engine: engine,
       defaultDatabaseName: databaseName,
-      instances: 1,
+      instances: props.auroraInstanceNumber,
       instanceProps: {
         instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MEDIUM),
         vpc: props.vpc,
